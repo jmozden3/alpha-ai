@@ -64,6 +64,21 @@ class CostLog:
         print(f"\n  {'Total run cost:':30s} ${self.total:.4f}")
         print("=" * 40 + "\n")
 
+    def to_html(self) -> str:
+        rows = ""
+        for e in self.entries:
+            if e.input_tokens or e.output_tokens:
+                p = PRICING[e.api][e.model]
+                rows += f"<tr><td>{e.api.title()} / {e.model}</td><td>{e.input_tokens:,}</td><td>{e.output_tokens:,}</td><td>${e.cost:.4f}</td></tr>"
+            elif e.audio_minutes:
+                rows += f"<tr><td>{e.api.title()} / {e.model} ({e.detail})</td><td colspan='2'>{e.audio_minutes:.1f} min</td><td>${e.cost:.4f}</td></tr>"
+        return f"""
+        <table border='1' cellpadding='6' cellspacing='0' style='border-collapse:collapse;font-family:monospace;'>
+          <tr style='background:#f0f0f0;'><th>Service</th><th>Input tokens</th><th>Output tokens</th><th>Cost</th></tr>
+          {rows}
+          <tr style='font-weight:bold;background:#fff3cd;'><td colspan='3'>Total run cost</td><td>${self.total:.4f}</td></tr>
+        </table>"""
+
     def append_to_file(self, path: str = "costs.log"):
         with open(path, "a", encoding="utf-8") as f:
             f.write(f"{self.run_date}")

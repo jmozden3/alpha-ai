@@ -2,3 +2,4 @@
 __pycache__/
 *.pyc
 costs.log
+run_summary.html

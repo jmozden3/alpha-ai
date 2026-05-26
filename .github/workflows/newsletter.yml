@@ -46,18 +46,7 @@ jobs:
           secure: true
           username: ${{ secrets.GMAIL_USERNAME }}
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          subject: "Alpha AI Newsletter Ready — ${{ github.run_started_at }}"
+          subject: "Alpha AI Newsletter Ready — $(date +%Y-%m-%d)"
           to: ${{ secrets.GMAIL_USERNAME }}
           from: Alpha AI <${{ secrets.GMAIL_USERNAME }}>
-          html_body: |
-            <h2>Your Alpha AI newsletter is ready.</h2>
-            <p>
-              <a href="https://github.com/jmozden3/alpha-ai/tree/main/newsletters">
-                View in GitHub
-              </a>
-            </p>
-            <p>Copy and paste into Substack when ready to publish.</p>
-            <hr>
-            <p style="color: #888; font-size: 12px;">
-              Sent automatically by your Alpha AI pipeline.
-            </p>
+          html_body: file://run_summary.html
