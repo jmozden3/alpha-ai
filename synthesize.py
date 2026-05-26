@@ -34,9 +34,13 @@ Freshness rules:
 
 Source variety rules:
 - No single source should appear in more than two of the five sections
-- Across the full newsletter, aim to draw from at least four different sources
-- If the best available content for a section comes from an already-used source, use it — quality beats variety — but actively look across all sources before defaulting to a familiar one
+- Across the full newsletter, draw from at least four different sources — each section should bring something the others don't
 - Reddit communities count as a source; treat each subreddit as its own source (r/ChatGPT and r/LocalLLaMA are distinct)
+
+Story and topic diversity rules — these are the most important variety rules:
+- Each section must be based on a genuinely different story, announcement, or piece of content. Never take one story and reframe it across two sections — readers will notice
+- No more than one section should have the same company or product as its primary subject. If one company had a big week, pick their single most useful story for your audience and use it once; find the best content from other sources for the rest
+- The five sections together should feel like five different windows into the AI world this week — different tools, different use cases, different sources, different kinds of readers served
 """
 
 NEWSLETTER_FORMAT = """
