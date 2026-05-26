@@ -32,6 +32,9 @@ def _filter_seen(sources: dict, seen_urls: set) -> tuple[dict, int]:
     filtered = {}
     skipped = 0
     for source, items in sources.items():
+        if not isinstance(items, list):
+            filtered[source] = []
+            continue
         kept = [item for item in items if item.get("url") not in seen_urls]
         skipped += len(items) - len(kept)
         filtered[source] = kept
@@ -50,14 +53,15 @@ def _source_health_html(rss: dict, reddit: dict) -> str:
         rows += f"<tr><td>{name}</td><td>RSS</td><td>{status}</td></tr>"
 
     for name, items in reddit.items():
-        count = len(items)
-        if count > 0:
-            status = f"<span style='color:green;'>&#10003; {count} items</span>"
+        if isinstance(items, dict) and "error" in items:
+            status = f"<span style='color:red;'>&#10007; Error: {items['error']}</span>"
+        elif len(items) > 0:
+            status = f"<span style='color:green;'>&#10003; {len(items)} items</span>"
         else:
             status = "<span style='color:orange;'>&#9888; No posts this week</span>"
         rows += f"<tr><td>{name}</td><td>Reddit</td><td>{status}</td></tr>"
 
-    alive = sum(1 for v in {**rss, **reddit}.values() if v)
+    alive = sum(1 for v in {**rss, **reddit}.values() if v and not (isinstance(v, dict) and "error" in v))
     total = len(rss) + len(reddit)
 
     return f"""
@@ -85,10 +89,10 @@ def main():
 
     # Deduplicate against previously seen URLs
     seen_urls = _load_seen_urls()
-    all_urls = {item["url"] for items in sources.values() for item in items if item.get("url")}
+    all_urls = {item["url"] for items in sources.values() if isinstance(items, list) for item in items if item.get("url")}
     sources_filtered, skipped = _filter_seen(sources, seen_urls)
-    total_new = sum(len(v) for v in sources_filtered.values() if v)
-    total_all = sum(len(v) for v in sources.values() if v)
+    total_new = sum(len(v) for v in sources_filtered.values() if isinstance(v, list))
+    total_all = sum(len(v) for v in sources.values() if isinstance(v, list))
 
     # Safety valve: if filtering removed more than 80% of content, ignore it.
     # This prevents an empty run when the pipeline is triggered twice in one week
@@ -123,7 +127,7 @@ def main():
     cost_log.append_to_file("costs.log")
     print("Costs logged to costs.log")
 
-    total_items = sum(len(v) for v in sources.values() if v)
+    total_items = sum(len(v) for v in sources.values() if isinstance(v, list))
     with open("run_summary.html", "w", encoding="utf-8") as f:
         f.write(f"""
 <h2>Your Alpha AI newsletter is ready.</h2>

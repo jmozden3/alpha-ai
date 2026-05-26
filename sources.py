@@ -51,15 +51,22 @@ def fetch_rss_feeds() -> dict[str, list[dict]]:
 
 def fetch_reddit_posts() -> dict[str, list[dict]]:
     results = {}
-    headers = {"User-Agent": "alpha-ai-newsletter/1.0"}
+    # Reddit blocks generic bot User-Agents from data center IPs (e.g. GitHub Actions).
+    # A descriptive UA with contact info is more likely to pass.
+    headers = {
+        "User-Agent": "alpha-ai-newsletter/1.0 (automated newsletter; contact via github.com/jmozden3/alpha-ai)"
+    }
     for subreddit in SUBREDDITS:
         print(f"  Fetching Reddit: r/{subreddit}...")
         try:
             url = f"https://www.reddit.com/r/{subreddit}/top.json"
             params = {"t": "week", "limit": MAX_ITEMS_PER_SOURCE}
-            resp = requests.get(url, headers=headers, params=params, timeout=10)
-            resp.raise_for_status()
-            posts = resp.json()["data"]["children"]
+            resp = requests.get(url, headers=headers, params=params, timeout=15)
+            # Expose the HTTP status so errors appear in logs and health table
+            if resp.status_code != 200:
+                raise requests.HTTPError(f"HTTP {resp.status_code}", response=resp)
+            data = resp.json()
+            posts = data.get("data", {}).get("children", [])
             items = []
             for post in posts:
                 d = post["data"]
@@ -74,6 +81,7 @@ def fetch_reddit_posts() -> dict[str, list[dict]]:
             results[f"r/{subreddit}"] = items
             print(f"    -> {len(items)} items")
         except Exception as e:
-            print(f"    -> failed: {e}")
-            results[f"r/{subreddit}"] = []
+            error_msg = str(e)
+            print(f"    -> failed: {error_msg}")
+            results[f"r/{subreddit}"] = {"error": error_msg}
     return results

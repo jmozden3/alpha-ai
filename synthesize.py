@@ -41,9 +41,10 @@ Source variety rules:
 
 NEWSLETTER_FORMAT = """
 ## From the Editor
-2-4 sentences. Write this as a draft placeholder for the human editor to personalize — it will be replaced before publishing. Base it on the most interesting or surprising thing in this week's source material: a reaction, an observation, something that feels genuinely new or worth noticing. Write in first person, conversational, like a quick thought before the main content. Do NOT write a tip here — the newsletter already has five tips. Write a voice. End with a one-line tease of what's inside this issue.
 
-*— [Editor's name]*
+*[Write your intro here — 2-4 sentences. A reaction, something you noticed, or anything on your mind this week related to AI. Not a tip — just your voice.]*
+
+*— [Your name]*
 
 ---
 
