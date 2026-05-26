@@ -1,0 +1,75 @@
+# costs.py — centralized cost tracking for all APIs used in the pipeline.
+# Add a new entry to PRICING when a new API/model is introduced.
+
+from dataclasses import dataclass, field
+from datetime import date
+
+PRICING = {
+    # Anthropic — per million tokens
+    "anthropic": {
+        "claude-sonnet-4-6": {"input_per_m": 3.00, "output_per_m": 15.00},
+        "claude-opus-4-6":   {"input_per_m": 5.00, "output_per_m": 25.00},
+    },
+    # OpenAI Whisper — per minute of audio
+    "openai": {
+        "whisper-1": {"per_minute": 0.006},
+    },
+}
+
+
+@dataclass
+class CostEntry:
+    api: str
+    model: str
+    detail: str          # human-readable label, e.g. source name for whisper
+    input_tokens: int = 0
+    output_tokens: int = 0
+    audio_minutes: float = 0.0
+
+    @property
+    def cost(self) -> float:
+        p = PRICING.get(self.api, {}).get(self.model, {})
+        if "input_per_m" in p:
+            return (self.input_tokens / 1_000_000 * p["input_per_m"] +
+                    self.output_tokens / 1_000_000 * p["output_per_m"])
+        if "per_minute" in p:
+            return self.audio_minutes * p["per_minute"]
+        return 0.0
+
+
+@dataclass
+class CostLog:
+    run_date: str = field(default_factory=lambda: date.today().strftime("%Y-%m-%d"))
+    entries: list = field(default_factory=list)
+
+    def add(self, entry: CostEntry):
+        self.entries.append(entry)
+
+    @property
+    def total(self) -> float:
+        return sum(e.cost for e in self.entries)
+
+    def print_summary(self):
+        print("\n" + "=" * 40)
+        print(f"  Cost Summary — {self.run_date}")
+        print("=" * 40)
+        for e in self.entries:
+            if e.input_tokens or e.output_tokens:
+                print(f"\n  {e.api.title()} / {e.model} ({e.detail})")
+                print(f"    Input tokens:  {e.input_tokens:>8,}  (${e.input_tokens / 1_000_000 * PRICING[e.api][e.model]['input_per_m']:.4f})")
+                print(f"    Output tokens: {e.output_tokens:>8,}  (${e.output_tokens / 1_000_000 * PRICING[e.api][e.model]['output_per_m']:.4f})")
+            elif e.audio_minutes:
+                print(f"\n  {e.api.title()} / {e.model} ({e.detail})")
+                print(f"    Audio:         {e.audio_minutes:>7.1f} min  (${e.cost:.4f})")
+        print(f"\n  {'Total run cost:':30s} ${self.total:.4f}")
+        print("=" * 40 + "\n")
+
+    def append_to_file(self, path: str = "costs.log"):
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(f"{self.run_date}")
+            for e in self.entries:
+                if e.input_tokens or e.output_tokens:
+                    f.write(f" | {e.api}/{e.model} in={e.input_tokens} out={e.output_tokens} ${e.cost:.4f}")
+                elif e.audio_minutes:
+                    f.write(f" | {e.api}/{e.model} {e.audio_minutes:.1f}min ${e.cost:.4f}")
+            f.write(f" | TOTAL ${self.total:.4f}\n")

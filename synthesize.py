@@ -1,6 +1,8 @@
 import os
 import anthropic
 
+from costs import CostEntry, CostLog
+
 MODEL = "claude-sonnet-4-6"
 
 SYSTEM_PROMPT = """You are the editor of Alpha AI, a weekly newsletter for non-technical people who want to use AI in their everyday lives and work.
@@ -57,7 +59,7 @@ def _format_sources(sources_dict: dict) -> str:
     return "\n".join(lines)
 
 
-def synthesize(sources_dict: dict) -> str:
+def synthesize(sources_dict: dict, cost_log: CostLog | None = None) -> str:
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     formatted_content = _format_sources(sources_dict)
@@ -86,6 +88,16 @@ Write the full newsletter now."""
         for text in stream.text_stream:
             print(text, end="", flush=True)
             newsletter += text
+        final = stream.get_final_message()
+
+    if cost_log is not None:
+        cost_log.add(CostEntry(
+            api="anthropic",
+            model=MODEL,
+            detail="newsletter synthesis",
+            input_tokens=final.usage.input_tokens,
+            output_tokens=final.usage.output_tokens,
+        ))
 
     print("\n")
     return newsletter
