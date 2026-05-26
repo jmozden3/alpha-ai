@@ -28,6 +28,12 @@ Freshness rules:
 - Strongly prefer items published within the last 7 days over older content
 - If two items cover similar topics, pick the more recent one
 - Avoid repeating topics or tools that feel like they could have appeared in last week's newsletter — favor what is genuinely new this week
+
+Source variety rules:
+- No single source should appear in more than two of the five sections
+- Across the full newsletter, aim to draw from at least four different sources
+- If the best available content for a section comes from an already-used source, use it — quality beats variety — but actively look across all sources before defaulting to a familiar one
+- Reddit communities count as a source; treat each subreddit as its own source (r/ChatGPT and r/LocalLLaMA are distinct)
 """
 
 NEWSLETTER_FORMAT = """
