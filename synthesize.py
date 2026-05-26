@@ -40,7 +40,14 @@ Source variety rules:
 """
 
 NEWSLETTER_FORMAT = """
-## ⚡ The Alpha
+## From the Editor
+2-4 sentences. Write this as a draft placeholder for the human editor to personalize — it will be replaced before publishing. Base it on the most interesting or surprising thing in this week's source material: a reaction, an observation, something that feels genuinely new or worth noticing. Write in first person, conversational, like a quick thought before the main content. Do NOT write a tip here — the newsletter already has five tips. Write a voice. End with a one-line tease of what's inside this issue.
+
+*— [Editor's name]*
+
+---
+
+## ⚡ The Alpha — Tip of the Week
 The single best actionable insight this week. One thing someone can use today. Must be specific — not "AI can help you write better" but HOW to do it step by step. End with: *Source: [Publication Name] — [URL]*
 
 ## 🛠 Tool of the Week
