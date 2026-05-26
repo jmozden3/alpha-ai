@@ -69,7 +69,7 @@ NOISE: One thing that sounds important but isn't actionable yet for regular peop
 def _format_sources(sources_dict: dict) -> str:
     lines = []
     for source_name, items in sources_dict.items():
-        if not items:
+        if not isinstance(items, list) or not items:
             continue
         lines.append(f"\n### {source_name}")
         for item in items:

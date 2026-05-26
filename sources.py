@@ -2,7 +2,6 @@ import re
 from datetime import datetime, timezone, timedelta
 
 import feedparser
-import requests
 
 from config import RSS_FEEDS, SUBREDDITS, MAX_ITEMS_PER_SOURCE, MAX_CHARS_PER_ITEM, DAYS_LOOKBACK
 
@@ -50,33 +49,28 @@ def fetch_rss_feeds() -> dict[str, list[dict]]:
 
 
 def fetch_reddit_posts() -> dict[str, list[dict]]:
+    # Reddit's JSON API blocks data center IPs (GitHub Actions gets HTTP 403).
+    # Their RSS feeds go through feedparser and are not blocked.
     results = {}
-    # Reddit blocks generic bot User-Agents from data center IPs (e.g. GitHub Actions).
-    # A descriptive UA with contact info is more likely to pass.
-    headers = {
-        "User-Agent": "alpha-ai-newsletter/1.0 (automated newsletter; contact via github.com/jmozden3/alpha-ai)"
-    }
     for subreddit in SUBREDDITS:
         print(f"  Fetching Reddit: r/{subreddit}...")
         try:
-            url = f"https://www.reddit.com/r/{subreddit}/top.json"
-            params = {"t": "week", "limit": MAX_ITEMS_PER_SOURCE}
-            resp = requests.get(url, headers=headers, params=params, timeout=15)
-            # Expose the HTTP status so errors appear in logs and health table
-            if resp.status_code != 200:
-                raise requests.HTTPError(f"HTTP {resp.status_code}", response=resp)
-            data = resp.json()
-            posts = data.get("data", {}).get("children", [])
+            rss_url = f"https://www.reddit.com/r/{subreddit}/top.rss?t=week&limit={MAX_ITEMS_PER_SOURCE}"
+            feed = feedparser.parse(rss_url)
+            if feed.bozo and not feed.entries:
+                raise ValueError(f"feed parse error: {feed.bozo_exception}")
             items = []
-            for post in posts:
-                d = post["data"]
-                text = _strip_html(d.get("selftext", "").strip() or d["title"])[:MAX_CHARS_PER_ITEM]
-                pub = datetime.fromtimestamp(d["created_utc"], tz=timezone.utc)
+            for entry in feed.entries[:MAX_ITEMS_PER_SOURCE]:
+                summary = getattr(entry, "summary", "") or ""
+                text = _strip_html(summary)[:MAX_CHARS_PER_ITEM]
+                if not text:
+                    text = entry.get("title", "")[:MAX_CHARS_PER_ITEM]
+                pub = _entry_date(entry)
                 items.append({
-                    "title": d["title"],
+                    "title": entry.get("title", "").strip(),
                     "text": text,
-                    "url": f"https://reddit.com{d['permalink']}",
-                    "date": pub.strftime("%Y-%m-%d"),
+                    "url": entry.get("link", ""),
+                    "date": pub.strftime("%Y-%m-%d") if pub else "unknown",
                 })
             results[f"r/{subreddit}"] = items
             print(f"    -> {len(items)} items")
