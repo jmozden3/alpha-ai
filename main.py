@@ -87,9 +87,20 @@ def main():
     seen_urls = _load_seen_urls()
     all_urls = {item["url"] for items in sources.values() for item in items if item.get("url")}
     sources_filtered, skipped = _filter_seen(sources, seen_urls)
-    if skipped:
-        print(f"\nSkipped {skipped} previously seen item(s) (seen_urls.json)")
     total_new = sum(len(v) for v in sources_filtered.values() if v)
+    total_all = sum(len(v) for v in sources.values() if v)
+
+    # Safety valve: if filtering removed more than 80% of content, ignore it.
+    # This prevents an empty run when the pipeline is triggered twice in one week
+    # (e.g. a local test followed by the scheduled Action).
+    if total_new < total_all * 0.2:
+        print(f"\nWarning: deduplication would leave only {total_new}/{total_all} items — skipping filter this run")
+        sources_filtered = sources
+        skipped = 0
+        total_new = total_all
+    elif skipped:
+        print(f"\nSkipped {skipped} previously seen item(s) (seen_urls.json)")
+
     print(f"Sending {total_new} new items to synthesis\n")
 
     print("Synthesizing newsletter...\n")
