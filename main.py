@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import sys
 from datetime import date
@@ -11,6 +12,30 @@ from sources import fetch_rss_feeds, fetch_reddit_posts
 from synthesize import synthesize
 
 load_dotenv()
+
+SEEN_URLS_PATH = "seen_urls.json"
+
+
+def _load_seen_urls() -> set:
+    if os.path.exists(SEEN_URLS_PATH):
+        with open(SEEN_URLS_PATH, "r", encoding="utf-8") as f:
+            return set(json.load(f))
+    return set()
+
+
+def _save_seen_urls(seen: set):
+    with open(SEEN_URLS_PATH, "w", encoding="utf-8") as f:
+        json.dump(sorted(seen), f, indent=2)
+
+
+def _filter_seen(sources: dict, seen_urls: set) -> tuple[dict, int]:
+    filtered = {}
+    skipped = 0
+    for source, items in sources.items():
+        kept = [item for item in items if item.get("url") not in seen_urls]
+        skipped += len(items) - len(kept)
+        filtered[source] = kept
+    return filtered, skipped
 
 
 def _source_health_html(rss: dict, reddit: dict) -> str:
@@ -58,8 +83,21 @@ def main():
 
     sources = {**rss, **reddit}
 
-    print("\nSynthesizing newsletter...\n")
-    newsletter = synthesize(sources, cost_log=cost_log)
+    # Deduplicate against previously seen URLs
+    seen_urls = _load_seen_urls()
+    all_urls = {item["url"] for items in sources.values() for item in items if item.get("url")}
+    sources_filtered, skipped = _filter_seen(sources, seen_urls)
+    if skipped:
+        print(f"\nSkipped {skipped} previously seen item(s) (seen_urls.json)")
+    total_new = sum(len(v) for v in sources_filtered.values() if v)
+    print(f"Sending {total_new} new items to synthesis\n")
+
+    print("Synthesizing newsletter...\n")
+    newsletter = synthesize(sources_filtered, cost_log=cost_log)
+
+    # Persist all fetched URLs so future runs skip them
+    seen_urls.update(all_urls)
+    _save_seen_urls(seen_urls)
 
     today = date.today().strftime("%Y-%m-%d")
     output_path = os.path.join("newsletters", f"{today}.md")

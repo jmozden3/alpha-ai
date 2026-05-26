@@ -22,6 +22,12 @@ Accuracy rules — these are non-negotiable:
 - Reddit posts (r/anything) are community discussion, not journalism. Treat them as signals of what people are talking about, never as sources for specific facts or data
 - If you are uncertain whether a claim is accurate, omit the specific detail rather than risk publishing a false statistic
 - At the end of each section, cite the source name AND include the source URL in parentheses so readers can verify for themselves
+
+Freshness rules:
+- Each item in the source material includes a publication date in brackets, e.g. [2026-05-20]
+- Strongly prefer items published within the last 7 days over older content
+- If two items cover similar topics, pick the more recent one
+- Avoid repeating topics or tools that feel like they could have appeared in last week's newsletter — favor what is genuinely new this week
 """
 
 NEWSLETTER_FORMAT = """
@@ -50,7 +56,8 @@ def _format_sources(sources_dict: dict) -> str:
             continue
         lines.append(f"\n### {source_name}")
         for item in items:
-            lines.append(f"**{item['title']}**")
+            date_str = f" [{item['date']}]" if item.get("date") and item["date"] != "unknown" else ""
+            lines.append(f"**{item['title']}**{date_str}")
             if item.get("text"):
                 lines.append(item["text"])
             if item.get("url"):

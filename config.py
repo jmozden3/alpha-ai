@@ -17,9 +17,9 @@ SUBREDDITS = [
     "LocalLLaMA",
     "ChatGPT",
     "ClaudeAI",
-    "AIPromptEngineering",
+    "singularity",       # replaced dead r/AIPromptEngineering (last post Apr 27, score 3)
     "VibeCoding",
-    "AI_Automations",
+    "OpenAI",            # replaced dead r/AI_Automations (last post Apr 24, score 1)
     "AI_Agents",
 ]
 

@@ -34,10 +34,12 @@ def fetch_rss_feeds() -> dict[str, list[dict]]:
                 if not summary and hasattr(entry, "content"):
                     summary = entry.content[0].get("value", "")
                 text = _strip_html(summary)[:MAX_CHARS_PER_ITEM]
+                pub = _entry_date(entry)
                 items.append({
                     "title": entry.get("title", "").strip(),
                     "text": text,
                     "url": entry.get("link", ""),
+                    "date": pub.strftime("%Y-%m-%d") if pub else "unknown",
                 })
             results[source_name] = items
             print(f"    -> {len(items)} items")
@@ -62,10 +64,12 @@ def fetch_reddit_posts() -> dict[str, list[dict]]:
             for post in posts:
                 d = post["data"]
                 text = _strip_html(d.get("selftext", "").strip() or d["title"])[:MAX_CHARS_PER_ITEM]
+                pub = datetime.fromtimestamp(d["created_utc"], tz=timezone.utc)
                 items.append({
                     "title": d["title"],
                     "text": text,
                     "url": f"https://reddit.com{d['permalink']}",
+                    "date": pub.strftime("%Y-%m-%d"),
                 })
             results[f"r/{subreddit}"] = items
             print(f"    -> {len(items)} items")
