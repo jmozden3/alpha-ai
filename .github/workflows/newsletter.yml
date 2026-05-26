@@ -2,7 +2,7 @@ name: Weekly AI Newsletter
 
 on:
   schedule:
-    - cron: '0 14 * * 2'  # Every Tuesday at 9am ET (14:00 UTC)
+    - cron: '0 14 * * 2'  # Every Tuesday at 10am EDT (14:00 UTC)
   workflow_dispatch:       # Also allows manual run from GitHub UI anytime
 
 jobs:
@@ -37,3 +37,28 @@ jobs:
           git add newsletters/
           git diff --staged --quiet || git commit -m "newsletter: $(date +%Y-%m-%d)"
           git push
+
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "Alpha AI Newsletter Ready — ${{ github.run_started_at }}"
+          to: ${{ secrets.GMAIL_USERNAME }}
+          from: Alpha AI <${{ secrets.GMAIL_USERNAME }}>
+          content_type: text/html
+          body: |
+            <h2>Your Alpha AI newsletter is ready.</h2>
+            <p>
+              <a href="https://github.com/jmozden3/alpha-ai/tree/main/newsletters">
+                View in GitHub
+              </a>
+            </p>
+            <p>Copy and paste into Substack when ready to publish.</p>
+            <hr>
+            <p style="color: #888; font-size: 12px;">
+              Sent automatically by your Alpha AI pipeline.
+            </p>
