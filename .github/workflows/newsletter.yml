@@ -38,6 +38,10 @@ jobs:
           git diff --staged --quiet || git commit -m "newsletter: $(date +%Y-%m-%d)"
           git push
 
+      - name: Set today's date
+        id: date
+        run: echo "today=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+
       - name: Send email notification
         uses: dawidd6/action-send-mail@v3
         with:
@@ -46,7 +50,7 @@ jobs:
           secure: true
           username: ${{ secrets.GMAIL_USERNAME }}
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          subject: "Alpha AI Newsletter Ready — $(date +%Y-%m-%d)"
+          subject: "Alpha AI Newsletter Ready — ${{ steps.date.outputs.today }}"
           to: ${{ secrets.GMAIL_USERNAME }}
           from: Alpha AI <${{ secrets.GMAIL_USERNAME }}>
           html_body: file://run_summary.html
