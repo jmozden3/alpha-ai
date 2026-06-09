@@ -107,8 +107,14 @@ def main():
 
     print(f"Sending {total_new} new items to synthesis\n")
 
+    # Alternate the action slot week to week so each issue stays short
+    # without losing variety over a month: even ISO weeks get the Prompt,
+    # odd weeks get the Workflow Unlock.
+    iso_week = date.today().isocalendar().week
+    rotating = "prompt" if iso_week % 2 == 0 else "workflow"
+
     print("Synthesizing newsletter...\n")
-    newsletter = synthesize(sources_filtered, cost_log=cost_log)
+    newsletter = synthesize(sources_filtered, cost_log=cost_log, rotating=rotating)
 
     # Persist all fetched URLs so future runs skip them
     seen_urls.update(all_urls)

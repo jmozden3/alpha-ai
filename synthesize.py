@@ -33,17 +33,33 @@ Freshness rules:
 - Avoid repeating topics or tools that feel like they could have appeared in last week's newsletter — favor what is genuinely new this week
 
 Source variety rules:
-- No single source should appear in more than two of the five sections
-- Across the full newsletter, draw from at least four different sources — each section should bring something the others don't
+- No single source should appear in more than two of the four content sections
+- Across the full newsletter, draw from at least three different sources — each section should bring something the others don't
 - Reddit communities count as a source; treat each subreddit as its own source (r/ChatGPT and r/LocalLLaMA are distinct)
 
 Story and topic diversity rules — these are the most important variety rules:
 - Each section must be based on a genuinely different story, announcement, or piece of content. Never take one story and reframe it across two sections — readers will notice
 - No more than one section should have the same company or product as its primary subject. If one company had a big week, pick their single most useful story for your audience and use it once; find the best content from other sources for the rest
-- The five sections together should feel like five different windows into the AI world this week — different tools, different use cases, different sources, different kinds of readers served
+- The content sections together should feel like different windows into the AI world this week — different tools, different use cases, different sources, different kinds of readers served
+
+Length and focus rules — the newsletter must be short enough that a busy reader actually finishes it and acts:
+- This is an actionable newsletter. One thing a reader will actually do beats five things they never will. Do not pad.
+- Keep the whole newsletter tight — aim for roughly a 3-minute read. Be ruthless about cutting anything that isn't directly useful.
+- The Tip of the Week is the hero. Give it room. Keep every other section lean.
 """
 
-NEWSLETTER_FORMAT = """
+_PROMPT_SECTION = """## 💡 Prompt of the Week
+One prompting technique with the EXACT prompt someone can copy-paste into ChatGPT, Claude, or any AI assistant. Explain what it does and when to use it in a sentence or two — keep the prose lean, let the prompt do the work. The prompt itself should be in a code block. End with: *Source: [Publication Name] — [URL]*"""
+
+_WORKFLOW_SECTION = """## 🔓 Workflow Unlock
+One concrete way to use AI differently in real work. Give specific steps, not vague advice. Example of good: "Open [tool], paste your meeting notes, type [specific instruction], and you get [specific output]." Keep it tight — the steps, not a lecture. End with: *Source: [Publication Name] — [URL]*"""
+
+ROTATING_SECTIONS = {"prompt": _PROMPT_SECTION, "workflow": _WORKFLOW_SECTION}
+
+
+def build_newsletter_format(rotating: str = "prompt") -> str:
+    rotating_section = ROTATING_SECTIONS.get(rotating, _PROMPT_SECTION)
+    return f"""
 ## From the Editor
 
 *[Write your intro here — 2-4 sentences. A reaction, something you noticed, or anything on your mind this week related to AI. Not a tip — just your voice.]*
@@ -53,20 +69,17 @@ NEWSLETTER_FORMAT = """
 ---
 
 ## ⚡ The Alpha — Tip of the Week
-The single best actionable insight this week. One thing someone can use today. Must be specific — not "AI can help you write better" but HOW to do it step by step. End with: *Source: [Publication Name] — [URL]*
+The single best actionable insight this week, and the hero of the issue — give it room. One thing someone can use today. Must be specific — not "AI can help you write better" but HOW to do it step by step. End with: *Source: [Publication Name] — [URL]*
 
 ## 🛠 Tool of the Week
-One specific AI tool. What it does in one sentence, exactly how to use it right now (specific steps), and who it's most useful for. No hype words like "revolutionary" or "game-changing". End with: *Source: [Publication Name] — [URL]*
+One specific AI tool. What it does in one sentence, exactly how to use it right now (specific steps), and who it's most useful for. Keep it lean. No hype words like "revolutionary" or "game-changing". End with: *Source: [Publication Name] — [URL]*
 
-## 💡 Prompt of the Week
-One prompting technique with the EXACT prompt someone can copy-paste into ChatGPT, Claude, or any AI assistant. Explain what it does and when to use it. The prompt itself should be in a code block. End with: *Source: [Publication Name] — [URL]*
-
-## 🔓 Workflow Unlock
-One concrete way to use AI differently in real work. Give specific steps, not vague advice. Example of good: "Open [tool], paste your meeting notes, type [specific instruction], and you get [specific output]." End with: *Source: [Publication Name] — [URL]*
+{rotating_section}
 
 ## 📡 Signal vs Noise
-SIGNAL: One thing happening in AI right now that non-technical people should actually pay attention to, and exactly why it matters to them personally. End with: *Source: [Publication Name] — [URL]*
-NOISE: One thing that sounds important but isn't actionable yet for regular people — tell them to ignore it for now and why. If sourced from Reddit, explicitly note it is community discussion, not a verified report. End with: *Source: [Publication Name] — [URL]*
+Keep this section short — about two sentences for each half.
+SIGNAL: One thing happening in AI right now that non-technical people should actually pay attention to, and in one sentence why it matters to them personally. End with: *Source: [Publication Name] — [URL]*
+NOISE: One thing that sounds important but isn't actionable yet for regular people — tell them to ignore it for now and why, briefly. If sourced from Reddit, explicitly note it is community discussion, not a verified report. End with: *Source: [Publication Name] — [URL]*
 """.strip()
 
 
@@ -87,12 +100,15 @@ def _format_sources(sources_dict: dict) -> str:
     return "\n".join(lines)
 
 
-def synthesize(sources_dict: dict, cost_log: CostLog | None = None) -> str:
+def synthesize(sources_dict: dict, cost_log: CostLog | None = None, rotating: str = "prompt") -> str:
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     formatted_content = _format_sources(sources_dict)
     total_sources = sum(len(v) for v in sources_dict.values() if v)
     print(f"Sending {total_sources} items to Claude for synthesis...")
+    print(f"Rotating action slot this week: {rotating}")
+
+    newsletter_format = build_newsletter_format(rotating)
 
     user_prompt = f"""Here is this week's raw content pulled from AI newsletters and communities:
 
@@ -102,7 +118,7 @@ def synthesize(sources_dict: dict, cost_log: CostLog | None = None) -> str:
 
 Now write this week's Alpha AI newsletter. Use only the content above as your source material. Follow exactly this format:
 
-{NEWSLETTER_FORMAT}
+{newsletter_format}
 
 Write the full newsletter now."""
 
