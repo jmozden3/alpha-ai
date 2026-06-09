@@ -1,9 +1,12 @@
 import os
+import re
+
 import anthropic
 
 from costs import CostEntry, CostLog
 
 MODEL = "claude-sonnet-4-6"
+FEEDBACK_PATH = "FEEDBACK.md"
 
 SYSTEM_PROMPT = """You are the editor of Alpha AI, a weekly newsletter for knowledge workers who want to use AI to level up — without becoming technical.
 
@@ -109,6 +112,29 @@ def _format_sources(sources_dict: dict) -> str:
     return "\n".join(lines)
 
 
+def _load_style_guidance(path: str = FEEDBACK_PATH) -> str:
+    """Return the text under the '## Style guidance' heading of FEEDBACK.md so the
+    editor's accumulated preferences steer each run. Empty string if the file or
+    section is missing. HTML comments are stripped so placeholders never leak in."""
+    if not os.path.exists(path):
+        return ""
+    with open(path, "r", encoding="utf-8") as f:
+        lines = f.read().splitlines()
+
+    captured, capturing = [], False
+    for line in lines:
+        if line.strip().lower().startswith("## style guidance"):
+            capturing = True
+            continue
+        if capturing and (line.startswith("## ") or line.strip() == "---"):
+            break  # next top-level section or horizontal-rule separator ends it
+        if capturing:
+            captured.append(line)
+
+    text = re.sub(r"<!--.*?-->", "", "\n".join(captured), flags=re.DOTALL)
+    return text.strip()
+
+
 def synthesize(sources_dict: dict, cost_log: CostLog | None = None, rotating: str = "prompt") -> str:
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
@@ -116,6 +142,16 @@ def synthesize(sources_dict: dict, cost_log: CostLog | None = None, rotating: st
     total_sources = sum(len(v) for v in sources_dict.values() if v)
     print(f"Sending {total_sources} items to Claude for synthesis...")
     print(f"Rotating action slot this week: {rotating}")
+
+    system_prompt = SYSTEM_PROMPT
+    guidance = _load_style_guidance()
+    if guidance:
+        system_prompt += (
+            "\n\nEditor feedback — accumulated preferences from past issues. "
+            "Treat these as high-priority style rules, second only to the accuracy rules above:\n"
+            + guidance
+        )
+        print("Applied editor style guidance from FEEDBACK.md")
 
     newsletter_format = build_newsletter_format(rotating)
 
@@ -134,7 +170,7 @@ Write the full newsletter now."""
     with client.messages.stream(
         model=MODEL,
         max_tokens=4096,
-        system=SYSTEM_PROMPT,
+        system=system_prompt,
         messages=[{"role": "user", "content": user_prompt}],
     ) as stream:
         newsletter = ""
