@@ -26,3 +26,7 @@ SUBREDDITS = [
 MAX_ITEMS_PER_SOURCE = 5
 MAX_CHARS_PER_ITEM = 2000
 DAYS_LOOKBACK = 7
+
+# --- Hacker News (Algolia API, unauthenticated, not IP-blocked on Actions) ---
+HN_QUERY = "AI"        # full-text query against story titles/text
+HN_MIN_POINTS = 30     # ignore low-engagement stories below this many points

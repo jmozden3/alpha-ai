@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 from costs import CostLog
-from sources import fetch_rss_feeds, fetch_reddit_posts
+from sources import fetch_rss_feeds, fetch_reddit_posts, fetch_hackernews
 from synthesize import synthesize
 
 load_dotenv()
@@ -41,7 +41,7 @@ def _filter_seen(sources: dict, seen_urls: set) -> tuple[dict, int]:
     return filtered, skipped
 
 
-def _source_health_html(rss: dict, reddit: dict) -> str:
+def _source_health_html(rss: dict, reddit: dict, hn: dict) -> str:
     rows = ""
 
     for name, items in rss.items():
@@ -52,17 +52,19 @@ def _source_health_html(rss: dict, reddit: dict) -> str:
             status = "<span style='color:red;'>&#10007; No content — check feed</span>"
         rows += f"<tr><td>{name}</td><td>RSS</td><td>{status}</td></tr>"
 
-    for name, items in reddit.items():
-        if isinstance(items, dict) and "error" in items:
-            status = f"<span style='color:red;'>&#10007; Error: {items['error']}</span>"
-        elif len(items) > 0:
-            status = f"<span style='color:green;'>&#10003; {len(items)} items</span>"
-        else:
-            status = "<span style='color:orange;'>&#9888; No posts this week</span>"
-        rows += f"<tr><td>{name}</td><td>Reddit</td><td>{status}</td></tr>"
+    # Reddit and Hacker News share the same shape (list of items, or {"error": ...})
+    for label, group in (("Reddit", reddit), ("Hacker News", hn)):
+        for name, items in group.items():
+            if isinstance(items, dict) and "error" in items:
+                status = f"<span style='color:red;'>&#10007; Error: {items['error']}</span>"
+            elif len(items) > 0:
+                status = f"<span style='color:green;'>&#10003; {len(items)} items</span>"
+            else:
+                status = "<span style='color:orange;'>&#9888; No posts this week</span>"
+            rows += f"<tr><td>{name}</td><td>{label}</td><td>{status}</td></tr>"
 
-    alive = sum(1 for v in {**rss, **reddit}.values() if v and not (isinstance(v, dict) and "error" in v))
-    total = len(rss) + len(reddit)
+    alive = sum(1 for v in {**rss, **reddit, **hn}.values() if v and not (isinstance(v, dict) and "error" in v))
+    total = len(rss) + len(reddit) + len(hn)
 
     return f"""
 <h3>Source Health ({alive}/{total} active)</h3>
@@ -85,7 +87,10 @@ def main():
     print("\nFetching Reddit posts...")
     reddit = fetch_reddit_posts()
 
-    sources = {**rss, **reddit}
+    print("\nFetching Hacker News...")
+    hn = fetch_hackernews()
+
+    sources = {**rss, **reddit, **hn}
 
     # Deduplicate against previously seen URLs
     seen_urls = _load_seen_urls()
@@ -143,7 +148,7 @@ def main():
 <p>Sources fetched: <strong>{total_items} items</strong></p>
 {cost_log.to_html()}
 
-{_source_health_html(rss, reddit)}
+{_source_health_html(rss, reddit, hn)}
 
 <br>
 <p>

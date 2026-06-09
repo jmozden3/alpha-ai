@@ -22,9 +22,13 @@ Rules you must follow:
 
 Accuracy rules — these are non-negotiable:
 - Never cite specific statistics, percentages, or numerical claims unless they appear verbatim in the source material. If a claim is vague, anecdotal, or from a Reddit post, use hedged language like "some reports suggest", "anecdotally", or "according to community discussion" instead of presenting it as established fact
-- Reddit posts (r/anything) are community discussion, not journalism. Treat them as signals of what people are talking about, never as sources for specific facts or data
+- Reddit and Hacker News posts are community discussion, not journalism. Treat them as signals of what people are talking about, never as sources for specific facts or data
 - If you are uncertain whether a claim is accurate, omit the specific detail rather than risk publishing a false statistic
 - At the end of each section, cite the source name AND include the source URL in parentheses so readers can verify for themselves
+
+Engagement signals:
+- Some items include an "(Engagement: ...)" line — a Reddit top-of-week rank, or Hacker News points and comment counts. This tells you how much a story is resonating right now; prefer high-engagement stories when choosing what to feature
+- Engagement is NOT a measure of accuracy or fit for your reader. A story can be #1 on Hacker News and still be too technical, too niche, or wrong for a non-technical knowledge worker. Judgment about your audience always overrides raw popularity
 
 Freshness rules:
 - Each item in the source material includes a publication date in brackets, e.g. [2026-05-20]
@@ -33,14 +37,17 @@ Freshness rules:
 - Avoid repeating topics or tools that feel like they could have appeared in last week's newsletter — favor what is genuinely new this week
 
 Source variety rules:
-- No single source should appear in more than two of the four content sections
-- Across the full newsletter, draw from at least three different sources — each section should bring something the others don't
+- Each of the four content sections must draw from a DIFFERENT source. Never cite the same source — or the same source URL — in two sections. You have many feeds available this week, so there is no excuse for repeating a source
+- Across the full newsletter, draw from at least four different sources — each section should bring something the others don't
 - Reddit communities count as a source; treat each subreddit as its own source (r/ChatGPT and r/LocalLLaMA are distinct)
 
 Story and topic diversity rules — these are the most important variety rules:
 - Each section must be based on a genuinely different story, announcement, or piece of content. Never take one story and reframe it across two sections — readers will notice
+- No single named tool or app (for example Perplexity, ChatGPT, Claude, Notion, Gemini) may be the recommended action OR the primary subject of more than one section. This holds even when the angle differs — "use Perplexity to stress-test an idea" and "Perplexity, the research tool" both count as Perplexity and may not both appear. In particular, the Tip of the Week and the Tool of the Week must center on DIFFERENT tools
 - No more than one section should have the same company or product as its primary subject. If one company had a big week, pick their single most useful story for your audience and use it once; find the best content from other sources for the rest
 - The content sections together should feel like different windows into the AI world this week — different tools, different use cases, different sources, different kinds of readers served
+
+Before you finish, re-read your full draft and verify three things: (1) no tool or app is recommended or featured in more than one section, (2) no source name or URL is cited in more than one section, (3) each section is a genuinely different story. If any check fails, replace the weaker section with different content drawn from the source material.
 
 Length and focus rules — the newsletter must be short enough that a busy reader actually finishes it and acts:
 - This is an actionable newsletter. One thing a reader will actually do beats five things they never will. Do not pad.
@@ -92,6 +99,8 @@ def _format_sources(sources_dict: dict) -> str:
         for item in items:
             date_str = f" [{item['date']}]" if item.get("date") and item["date"] != "unknown" else ""
             lines.append(f"**{item['title']}**{date_str}")
+            if item.get("signal"):
+                lines.append(f"(Engagement: {item['signal']})")
             if item.get("text"):
                 lines.append(item["text"])
             if item.get("url"):
