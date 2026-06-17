@@ -1,5 +1,7 @@
+import json
 import os
 import re
+from datetime import date, datetime, timedelta
 
 import anthropic
 
@@ -7,6 +9,8 @@ from costs import CostEntry, CostLog
 
 MODEL = "claude-sonnet-4-6"
 FEEDBACK_PATH = "FEEDBACK.md"
+COVERAGE_PATH = "coverage.json"
+COVERAGE_LOOKBACK_DAYS = 90  # how far back to remember covered use cases (~3 months)
 
 SYSTEM_PROMPT = """You are the editor of Alpha AI, a weekly newsletter for knowledge workers who want to use AI to level up — without becoming technical.
 
@@ -135,6 +139,69 @@ def _load_style_guidance(path: str = FEEDBACK_PATH) -> str:
     return text.strip()
 
 
+def _load_recent_coverage(path: str = COVERAGE_PATH, days: int = COVERAGE_LOOKBACK_DAYS) -> str:
+    """Return a dated bullet list of use cases covered in the last `days` so the
+    editor can steer away from them. Empty string if the ledger is missing/empty.
+    Entries are {"date": "YYYY-MM-DD", "covered": ["...", ...]}."""
+    if not os.path.exists(path):
+        return ""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            ledger = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return ""
+
+    cutoff = date.today() - timedelta(days=days)
+    lines = []
+    for entry in ledger:
+        try:
+            entry_date = datetime.strptime(entry.get("date", ""), "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        if entry_date < cutoff:
+            continue
+        for item in entry.get("covered", []):
+            lines.append(f"- ({entry['date']}) {item}")
+    return "\n".join(lines)
+
+
+def extract_coverage(newsletter: str, cost_log: CostLog | None = None) -> list[str]:
+    """Distill a finished issue into a few short 'use case' lines for the ledger.
+    Returns [] on any failure so a bad extraction never blocks the pipeline."""
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    instruction = (
+        "Distill this published newsletter issue into a compact coverage record so "
+        "future issues can avoid repeating the same use cases. For each main section "
+        "(Tip of the Week, Tool of the Week, the Prompt/Workflow slot, and each half of "
+        "Signal vs Noise), output ONE short line capturing the SPECIFIC use case or "
+        "advice — the action a reader takes, not just the tool name. Format each line as "
+        "\"<section>: <use case in 12 words or fewer> (tool: <tool or n/a>)\". "
+        "Return ONLY a JSON array of strings, nothing else.\n\n"
+        f"Newsletter:\n{newsletter}"
+    )
+    try:
+        resp = client.messages.create(
+            model=MODEL,
+            max_tokens=500,
+            messages=[{"role": "user", "content": instruction}],
+        )
+        if cost_log is not None:
+            cost_log.add(CostEntry(
+                api="anthropic",
+                model=MODEL,
+                detail="coverage extraction",
+                input_tokens=resp.usage.input_tokens,
+                output_tokens=resp.usage.output_tokens,
+            ))
+        text = resp.content[0].text.strip()
+        text = re.sub(r"^```(?:json)?|```$", "", text, flags=re.MULTILINE).strip()
+        covered = json.loads(text)
+        return [str(x) for x in covered if str(x).strip()]
+    except Exception as e:
+        print(f"  Coverage extraction failed (non-fatal): {e}")
+        return []
+
+
 def synthesize(sources_dict: dict, cost_log: CostLog | None = None, rotating: str = "prompt") -> str:
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
@@ -152,6 +219,16 @@ def synthesize(sources_dict: dict, cost_log: CostLog | None = None, rotating: st
             + guidance
         )
         print("Applied editor style guidance from FEEDBACK.md")
+
+    recent_coverage = _load_recent_coverage()
+    if recent_coverage:
+        system_prompt += (
+            "\n\nAlready covered in the last 3 months — do NOT repeat these use cases, "
+            "prompts, or hero tools, even pointed at a different tool. The repeating "
+            "ACTION is what to avoid: bring genuinely new angles this week.\n"
+            + recent_coverage
+        )
+        print(f"Applied {recent_coverage.count(chr(10)) + 1} recent coverage line(s) from coverage.json")
 
     newsletter_format = build_newsletter_format(rotating)
 

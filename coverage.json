@@ -1,0 +1,66 @@
+[
+  {
+    "date": "2026-05-25",
+    "covered": [
+      "Tip of the Week: Ask AI to summarize its understanding before answering important questions (tool: Claude/ChatGPT)",
+      "Tool of the Week: Take free official AI courses to earn Anthropic-backed certificates (tool: Anthropic Skilljar Academy)",
+      "Prompt of the Week: Paste raw tasks and meetings to generate a prioritized daily schedule (tool: Claude/ChatGPT)",
+      "Workflow Unlock: Convert raw meeting notes into a structured report with headers in minutes (tool: Claude/ChatGPT)",
+      "Signal: Claude raised usage limits so longer uninterrupted work sessions are now possible (tool: Claude)",
+      "Noise: Skip learning AI agent tools now as enterprise deployments are failing at high rates (tool: n/a)"
+    ]
+  },
+  {
+    "date": "2026-05-26",
+    "covered": [
+      "Tip of the Week: Edit AI-drafted emails to preserve your own voice, not replace it (tool: ChatGPT/Claude)",
+      "Tool of the Week: Complete free structured AI courses directly from Anthropic's official academy (tool: Anthropic Skilljar Academy)",
+      "Prompt of the Week: Prompt AI to outline its plan before executing any complex task (tool: n/a)",
+      "Workflow Unlock: Use Anthropic's GitHub skill templates to audit your own business workflows (tool: Claude/ChatGPT)",
+      "Signal: Restrict agentic AI tool permissions to reduce file-exfiltration attack surface (tool: Microsoft Copilot Cowork)",
+      "Noise: Disregard enterprise agent rollback stat as irrelevant to individual knowledge workers (tool: n/a)"
+    ]
+  },
+  {
+    "date": "2026-06-02",
+    "covered": [
+      "Tip of the Week: Review AI sessions daily to identify and fix recurring prompt weaknesses (tool: Claude/ChatGPT)",
+      "Tool of the Week: Adjust effort control slider to match task complexity before prompting (tool: Claude Opus 4.8)",
+      "Prompt of the Week: Use explicit anti-flattery instructions to get direct editorial feedback on writing (tool: ChatGPT/Claude)",
+      "Workflow Unlock: Paste a standing brief plus raw notes to produce consistent written content drafts (tool: Claude/ChatGPT)",
+      "Signal vs Noise — Signal: Enable two-factor authentication on Meta accounts after AI bot hijack exploit (tool: n/a)",
+      "Signal vs Noise — Noise: Ignore fully autonomous life-management agents; use AI for specific reviewable tasks (tool: n/a)"
+    ]
+  },
+  {
+    "date": "2026-06-09",
+    "covered": [
+      "Tip of the Week: Use Perplexity to stress-test ideas before pitches adversarially (tool: Perplexity)",
+      "Tool of the Week: Enable Lockdown Mode to block prompt-injection attacks on sensitive docs (tool: ChatGPT)",
+      "Prompt of the Week: Structure project kickoffs as book pitches to force AI context clarity (tool: n/a)",
+      "Workflow Unlock: Run weekly AI review of notes to surface missed connections (tool: ChatGPT/Claude)",
+      "Signal: New Siri uses screen vision AI to understand on-device context across apps (tool: Siri)",
+      "Noise: Ignore Anthropic 80%-AI-code stat as proxy for broader knowledge-worker job risk (tool: n/a)"
+    ]
+  },
+  {
+    "date": "2026-06-16",
+    "covered": [
+      "Tip of the Week: Upload decision docs to NotebookLM and prompt for counterarguments (tool: NotebookLM)",
+      "Tool of the Week: Record meetings with wearable device to auto-generate transcripts and action items (tool: Plaud)",
+      "Workflow Unlock: Paste raw material into chatbot to produce a five-minute decision-ready briefing (tool: ChatGPT/Claude)",
+      "Signal: German court holds Google legally liable for false AI search summary answers (tool: n/a)",
+      "Noise: Unsupervised AI agent autonomously ran tasks and generated runaway costs (tool: n/a)"
+    ]
+  },
+  {
+    "date": "2026-06-17",
+    "covered": [
+      "Tip of the Week: Paste a saved template prompt to draft fast follow-up emails (tool: ChatGPT/Claude)",
+      "Tool of the Week: Ask plain-English company questions to prep for meetings quickly (tool: Perplexity Finance)",
+      "Workflow Unlock: Prompt AI to generate scope doc and flag project-expansion risks before agreeing (tool: ChatGPT/Claude)",
+      "Signal: Diversify AI tool stack after government export control pulled a model offline (tool: n/a)",
+      "Noise: Ignore GLM-5.2 frontend coding benchmark — irrelevant for non-developer users (tool: n/a)"
+    ]
+  }
+]

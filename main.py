@@ -9,7 +9,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="repla
 
 from costs import CostLog
 from sources import fetch_rss_feeds, fetch_reddit_posts, fetch_hackernews
-from synthesize import synthesize
+from synthesize import synthesize, extract_coverage, COVERAGE_PATH
 
 load_dotenv()
 
@@ -133,6 +133,22 @@ def main():
         f.write(newsletter)
 
     print(f"Newsletter saved to {output_path}")
+
+    # Append this issue's use cases to the coverage ledger so future runs avoid
+    # repeating them. Best-effort: a failed extraction never blocks the run.
+    covered = extract_coverage(newsletter, cost_log=cost_log)
+    if covered:
+        ledger = []
+        if os.path.exists(COVERAGE_PATH):
+            try:
+                with open(COVERAGE_PATH, "r", encoding="utf-8") as f:
+                    ledger = json.load(f)
+            except (json.JSONDecodeError, OSError):
+                ledger = []
+        ledger.append({"date": today, "covered": covered})
+        with open(COVERAGE_PATH, "w", encoding="utf-8") as f:
+            json.dump(ledger, f, indent=2, ensure_ascii=False)
+        print(f"Coverage ledger updated ({len(covered)} use case(s) logged)")
 
     cost_log.print_summary()
     cost_log.append_to_file("costs.log")

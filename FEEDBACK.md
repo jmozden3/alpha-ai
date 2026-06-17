@@ -20,6 +20,8 @@ The flow: react to an issue → jot it in the log → when a pattern repeats, pr
 
 ### Don't
 
+- Don't reuse a use case or piece of advice we've already run, even with a different tool. The repeating *action* is the problem, not the tool: "use [tool] to pressure-test your idea" must not come back as the same idea wearing a different tool's name. Each issue's actions should be genuinely new angles, not old advice re-skinned.
+
 <!-- Add things you don't want to see, e.g.:
 - Don't recommend a tool unless it has a free tier a non-technical reader can start with today. -->
 
@@ -28,6 +30,12 @@ The flow: react to an issue → jot it in the log → when a pattern repeats, pr
 ## Feedback log
 
 <!-- Add a dated entry whenever you react to an issue. Copy the template below. -->
+
+### 2026-06-17 — recurring use cases
+
+- **Issue:** general pattern across recent issues
+- **Didn't like:** the same underlying advice/use case keeps showing up over time, just pointed at a different tool (e.g. "use X to pressure-test your idea").
+- **Change to make:** give the synthesizer a memory of what past issues already covered so it stops repeating use cases. Promoted to a Style guidance "Don't" bullet above. Implementing a "recently covered" feed from past newsletters (see below).
 
 ### YYYY-MM-DD — (template, copy me)
 

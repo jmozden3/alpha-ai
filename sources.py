@@ -167,14 +167,23 @@ def fetch_hackernews() -> dict[str, list[dict] | dict]:
     # comment counts, giving Claude a real engagement signal for what's resonating.
     print("  Fetching Hacker News...")
     cutoff_ts = int((datetime.now(timezone.utc) - timedelta(days=DAYS_LOOKBACK)).timestamp())
-    url = (
-        "https://hn.algolia.com/api/v1/search"
-        f"?tags=story&query={HN_QUERY}"
-        f"&numericFilters=created_at_i>{cutoff_ts},points>{HN_MIN_POINTS}"
-        "&hitsPerPage=50"
-    )
+    # numericFilters must be a list of separate conditions. Comma-joining them
+    # into one value makes Algolia reject the request ("invalid numeric
+    # attribute(points)") — passing a list serializes to repeated params, which
+    # it accepts and applies as AND.
+    params = {
+        "tags": "story",
+        "query": HN_QUERY,
+        "numericFilters": [f"created_at_i>{cutoff_ts}", f"points>{HN_MIN_POINTS}"],
+        "hitsPerPage": 50,
+    }
     try:
-        resp = requests.get(url, timeout=20, headers={"User-Agent": "alpha-ai-newsletter"})
+        resp = requests.get(
+            "https://hn.algolia.com/api/v1/search",
+            params=params,
+            timeout=20,
+            headers={"User-Agent": "alpha-ai-newsletter"},
+        )
         resp.raise_for_status()
         hits = resp.json().get("hits", [])
         hits.sort(key=lambda h: h.get("points", 0) or 0, reverse=True)
