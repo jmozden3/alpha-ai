@@ -28,6 +28,9 @@ jobs:
       - name: Generate newsletter
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Reddit uses public RSS (no key). Bump the delay so the data-center IP
+          # stays under the per-IP rate limit; the job has plenty of time budget.
+          REDDIT_REQUEST_DELAY: "30"
         run: python main.py
 
       - name: Commit and push newsletter

@@ -9,6 +9,9 @@ def print_results(label: str, results: dict):
     print(f"{label}")
     print(f"{'='*50}")
     for source, items in results.items():
+        if isinstance(items, dict) and "error" in items:
+            print(f"\n  {source} — ERROR: {items['error']}")
+            continue
         count = len(items)
         first_title = items[0]["title"] if items else "(no items)"
         print(f"\n  {source} — {count} item(s)")
