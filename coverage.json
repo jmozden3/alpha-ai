@@ -62,5 +62,15 @@
       "Signal: Diversify AI tool stack after government export control pulled a model offline (tool: n/a)",
       "Noise: Ignore GLM-5.2 frontend coding benchmark — irrelevant for non-developer users (tool: n/a)"
     ]
+  },
+  {
+    "date": "2026-06-17",
+    "covered": [
+      "Tip of the Week: Generate scope document and risk questions before agreeing to any project (tool: ChatGPT/Claude)",
+      "Tool of the Week: Export ChatGPT-generated image directly into Canva for editable polish (tool: ChatGPT + Canva)",
+      "Workflow Unlock: Run persistent project chat with end-of-session updates for ongoing AI leverage (tool: ChatGPT/Claude)",
+      "Signal: Avoid 'AI' in marketing copy; lead with user benefit instead (tool: n/a)",
+      "Noise: Government model suspension caused no practical disruption to mainstream AI tools (tool: n/a)"
+    ]
   }
 ]
