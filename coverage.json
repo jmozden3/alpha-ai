@@ -72,5 +72,15 @@
       "Signal: Avoid 'AI' in marketing copy; lead with user benefit instead (tool: n/a)",
       "Noise: Government model suspension caused no practical disruption to mainstream AI tools (tool: n/a)"
     ]
+  },
+  {
+    "date": "2026-06-23",
+    "covered": [
+      "Tip of the Week: Dictate rough drafts to AI for cleanup instead of typing (tool: ChatGPT/Claude)",
+      "Tool of the Week: Generate pre-meeting briefings from calendar invite details (tool: Gemini in Google Workspace)",
+      "Prompt of the Week: Mine unstated customer frustrations before writing a proposal or pitch (tool: n/a)",
+      "Signal: Norway bans AI in elementary schools; when struggle matters more than efficiency (tool: n/a)",
+      "Noise: Unverified AI claim of decoding Linear A ancient script (tool: n/a)"
+    ]
   }
 ]
