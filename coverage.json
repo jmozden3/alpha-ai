@@ -82,5 +82,15 @@
       "Signal: Norway bans AI in elementary schools; when struggle matters more than efficiency (tool: n/a)",
       "Noise: Unverified AI claim of decoding Linear A ancient script (tool: n/a)"
     ]
+  },
+  {
+    "date": "2026-06-30",
+    "covered": [
+      "Tip of the Week: Run a predictability test before deciding if a task needs AI (tool: n/a)",
+      "Tool of the Week: Record a browser task once to automate it on replay (tool: Record & Replay)",
+      "Workflow Unlock: Paste messy inbox messages into AI to sort them into categories (tool: ChatGPT/Claude)",
+      "Signal: Add human review checkpoint when using AI for quality or safety decisions (tool: n/a)",
+      "Noise: GPT-5.6 and Claude Mythos are government-restricted and irrelevant to most workers (tool: n/a)"
+    ]
   }
 ]
