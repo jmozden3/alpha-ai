@@ -2,6 +2,10 @@
 
 A running, plain-language log of changes to the Alpha AI pipeline and *why* we made them. Newest first.
 
+## 2026-07-07 (cadence)
+
+- **Switched to biweekly.** Weekly cadence was forcing four strong, non-repeating items out of every seven days — there just isn't that much genuinely new, do-it-tomorrow AI advice for a non-technical reader each week, which is what drove the "same advice, different tool" repetition. Every two weeks doubles the candidate pool per issue (best 4 of ~14 days instead of 7), which means higher signal and less slop, and fits a time-poor reader better. Same issue length — kept the single rotating action slot, not a meatier issue. Controlled by `PUBLISH_EVERY_N_WEEKS` in `config.py` (set to 1 to return to weekly). The Action still runs every Tuesday and simply skips off weeks; the rotating Prompt/Workflow slot now alternates per *published* issue so it survives skipped weeks. First biweekly issue: Tue 2026-07-14.
+
 ## 2026-07-07
 
 - **Fixed confabulated/duplicate citations (the real "two sources done twice" bug).** The model was writing good advice and then attaching a plausible-but-wrong source URL — the same Every.to URL showed up in two issues on unrelated topics, and Hacker News was cited in both Signal and Noise in one issue. Now each source item carries a stable ID (`[S12]`); the model outputs the ID it drew from and the pipeline substitutes the real source name + URL from that ID. Citations can no longer be invented or mismatched, and reusing an ID across sections is detected automatically. (`resolve_citations` in `synthesize.py`.)

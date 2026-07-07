@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
+from config import PUBLISH_EVERY_N_WEEKS, CADENCE_EPOCH
 from costs import CostLog
 from sources import fetch_rss_feeds, fetch_reddit_posts, fetch_hackernews
 from synthesize import synthesize, extract_coverage, COVERAGE_PATH
@@ -104,11 +105,21 @@ def main():
     # Don't clobber an existing issue for today. A manual test run followed by the
     # scheduled Action (or two runs in one day) would otherwise overwrite the file
     # and produce duplicate commits. Set ALPHA_FORCE=1 to regenerate deliberately.
+    force = bool(os.environ.get("ALPHA_FORCE"))
     today = date.today().strftime("%Y-%m-%d")
     output_path = os.path.join("newsletters", f"{today}.md")
-    if os.path.exists(output_path) and not os.environ.get("ALPHA_FORCE"):
+    if os.path.exists(output_path) and not force:
         print(f"Newsletter for {today} already exists at {output_path}.")
         print("Set ALPHA_FORCE=1 to regenerate. Exiting without changes.")
+        return
+
+    # Biweekly cadence: the Action runs weekly, but we only publish every Nth
+    # week (counted from CADENCE_EPOCH so it never drifts). On off weeks we exit
+    # before doing any work — nothing fetched, written, committed, or emailed.
+    weeks_since = (date.today() - CADENCE_EPOCH).days // 7
+    if PUBLISH_EVERY_N_WEEKS > 1 and weeks_since % PUBLISH_EVERY_N_WEEKS != 0 and not force:
+        print(f"Off week for the {PUBLISH_EVERY_N_WEEKS}-week schedule — nothing to publish today.")
+        print("Set ALPHA_FORCE=1 to generate anyway, or PUBLISH_EVERY_N_WEEKS=1 in config.py for weekly.")
         return
 
     cost_log = CostLog()
@@ -144,11 +155,12 @@ def main():
 
     print(f"Sending {total_new} new items to synthesis\n")
 
-    # Alternate the action slot week to week so each issue stays short
-    # without losing variety over a month: even ISO weeks get the Prompt,
-    # odd weeks get the Workflow Unlock.
-    iso_week = date.today().isocalendar().week
-    rotating = "prompt" if iso_week % 2 == 0 else "workflow"
+    # Alternate the action slot from issue to issue so each stays short without
+    # losing variety over a month. Keyed to the count of PUBLISHED issues (not the
+    # calendar week), so alternation survives skipped/off weeks: even issues get
+    # the Prompt, odd issues get the Workflow Unlock.
+    issue_index = weeks_since // PUBLISH_EVERY_N_WEEKS
+    rotating = "prompt" if issue_index % 2 == 0 else "workflow"
 
     print("Synthesizing newsletter...\n")
     newsletter = synthesize(sources_filtered, cost_log=cost_log, rotating=rotating)

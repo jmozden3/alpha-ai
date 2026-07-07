@@ -1,3 +1,5 @@
+from datetime import date
+
 RSS_FEEDS = {
     # --- Audience-appropriate feeds (verified live 2026-07-07) ---
     # Kept: written for non-technical knowledge workers or accessible practitioners.
@@ -49,6 +51,20 @@ AI_KEYWORDS = [
 MAX_ITEMS_PER_SOURCE = 5
 MAX_CHARS_PER_ITEM = 2000
 DAYS_LOOKBACK = 7
+
+# --- Publishing cadence ---
+# The GitHub Action fires every Tuesday, but we only publish every Nth week.
+# 1 = weekly, 2 = biweekly. On "off" weeks main.py exits early and nothing is
+# written, committed, or emailed. Flip this back to 1 to return to weekly.
+PUBLISH_EVERY_N_WEEKS = 2
+# Monday of the first intended publish week. Weeks are counted from here (rather
+# than ISO week numbers, which reset each year and would shift the cadence), so
+# the schedule stays stable indefinitely. First biweekly issue: Tue 2026-07-14.
+CADENCE_EPOCH = date(2026, 7, 13)
+
+# On off weeks we still want a full week of source lookback per issue, but items
+# older than one week are already de-emphasized by the freshness rules, so no
+# change to DAYS_LOOKBACK is needed for biweekly.
 
 # --- Hacker News (Algolia API, unauthenticated, not IP-blocked on Actions) ---
 HN_QUERY = "AI"        # full-text query against story titles/text
