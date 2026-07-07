@@ -9,6 +9,8 @@ import requests
 from config import (
     RSS_FEEDS,
     SUBREDDITS,
+    GENERAL_SUBREDDITS,
+    AI_KEYWORDS,
     MAX_ITEMS_PER_SOURCE,
     MAX_CHARS_PER_ITEM,
     DAYS_LOOKBACK,
@@ -20,6 +22,19 @@ from config import (
 def _strip_html(text: str) -> str:
     text = re.sub(r"<[^>]+>", " ", text)
     return re.sub(r"\s+", " ", text).strip()
+
+
+# Match each keyword only as a standalone token so short ones like "ai" or "gpt"
+# don't fire inside "email", "again", or "chair". Lookarounds (rather than \b)
+# handle keywords that contain punctuation, e.g. "a.i.".
+_AI_PATTERN = re.compile(
+    "|".join(r"(?<![a-z0-9])" + re.escape(k) + r"(?![a-z0-9])" for k in AI_KEYWORDS),
+    re.IGNORECASE,
+)
+
+
+def _is_ai_relevant(*parts: str) -> bool:
+    return bool(_AI_PATTERN.search(" ".join(p for p in parts if p)))
 
 
 def _entry_date(entry) -> datetime | None:
@@ -85,14 +100,14 @@ def _reddit_int_env(name: str, default: int) -> int:
         return default
 
 
-def _fetch_reddit_rss(subreddit: str, headers: dict, max_retries: int) -> bytes:
+def _fetch_reddit_rss(subreddit: str, headers: dict, max_retries: int, limit: int) -> bytes:
     # Reddit serves public subreddit feeds at /top.rss. Empirically this endpoint
     # still answers 200 to a cold request (unlike /top.json, which 403s outright),
     # but it rate-limits rapid repeats with 429. So: retry 429 with exponential
     # backoff (honoring Retry-After when present), but treat 403/4xx/5xx as a hard
     # failure worth surfacing — no point retrying a block.
     url = f"https://www.reddit.com/r/{subreddit}/top.rss"
-    params = {"t": "week", "limit": MAX_ITEMS_PER_SOURCE}
+    params = {"t": "week", "limit": limit}
     backoff = _reddit_int_env("REDDIT_BACKOFF_SECONDS", 10)
     for attempt in range(1, max_retries + 1):
         resp = requests.get(url, params=params, headers=headers, timeout=20)
@@ -131,22 +146,33 @@ def fetch_reddit_posts() -> dict[str, list[dict] | dict]:
         print(f"  Fetching Reddit: r/{subreddit}...")
         if i > 0 and delay > 0:
             time.sleep(delay)  # space requests so we don't trip the rate limit
+        # General-interest subs need an AI-relevance gate, so pull a deeper slice
+        # (most of their top posts won't be about AI and get filtered out).
+        is_general = subreddit in GENERAL_SUBREDDITS
+        fetch_limit = 15 if is_general else MAX_ITEMS_PER_SOURCE
         try:
-            content = _fetch_reddit_rss(subreddit, headers, max_retries)
+            content = _fetch_reddit_rss(subreddit, headers, max_retries, fetch_limit)
             feed = feedparser.parse(content)
             if feed.bozo and not feed.entries:
                 raise ValueError(f"feed parse error: {feed.bozo_exception}")
             # top.rss?t=week is ordered best-first, so feed position IS the
             # top-of-week rank — pass it through as an engagement signal.
             items = []
-            for rank, entry in enumerate(feed.entries[:MAX_ITEMS_PER_SOURCE], start=1):
+            for rank, entry in enumerate(feed.entries, start=1):
+                if len(items) >= MAX_ITEMS_PER_SOURCE:
+                    break
+                title = entry.get("title", "").strip()
                 summary = getattr(entry, "summary", "") or ""
                 text = _strip_html(summary)[:MAX_CHARS_PER_ITEM]
                 if not text:
-                    text = entry.get("title", "")[:MAX_CHARS_PER_ITEM]
+                    text = title[:MAX_CHARS_PER_ITEM]
+                # Alpha AI is about using AI for real impact — from a general sub,
+                # only keep posts that actually mention AI. AI-native subs pass through.
+                if is_general and not _is_ai_relevant(title, text):
+                    continue
                 pub = _entry_date(entry)
                 items.append({
-                    "title": entry.get("title", "").strip(),
+                    "title": title,
                     "text": text,
                     "url": entry.get("link", ""),
                     "date": pub.strftime("%Y-%m-%d") if pub else "unknown",

@@ -2,6 +2,14 @@
 
 A running, plain-language log of changes to the Alpha AI pipeline and *why* we made them. Newest first.
 
+## 2026-07-07
+
+- **Fixed confabulated/duplicate citations (the real "two sources done twice" bug).** The model was writing good advice and then attaching a plausible-but-wrong source URL — the same Every.to URL showed up in two issues on unrelated topics, and Hacker News was cited in both Signal and Noise in one issue. Now each source item carries a stable ID (`[S12]`); the model outputs the ID it drew from and the pipeline substitutes the real source name + URL from that ID. Citations can no longer be invented or mismatched, and reusing an ID across sections is detected automatically. (`resolve_citations` in `synthesize.py`.)
+- **Added a variety self-check + one re-roll.** After drafting, a cheap model call flags when two sections lean on the same underlying story/event (including the editor intro) — the failure mode on big-news weeks, where one event bled across sections under different source names. If the draft repeats a source or a story, it's re-rolled once with the specific problems called out; remaining issues are surfaced, not silently shipped. Added a prompt rule: no single event may anchor more than one section, intro included.
+- **Refocused the sources on our actual reader.** Pruned four researcher-focused feeds that rarely produced usable items (Latent Space, Import AI, Ahead of AI, The Gradient) and added five verified, audience-appropriate ones: OpenAI (real feature launches), TLDR AI, Lenny's Newsletter, MIT Sloan Management Review, and Platformer. Swapped three hobbyist/dev subreddits for communities of the people we write for (r/productivity, r/Entrepreneur, r/smallbusiness) — but those general subs only pass posts through when they actually mention AI, so we keep the "use AI for real impact" focus.
+- **Upgraded the model to Claude Sonnet 5** (same price tier as before, better at following the variety rules), with thinking explicitly off to keep cost and latency the same.
+- **Operational fixes:** the pipeline no longer overwrites an existing issue for the day (set `ALPHA_FORCE=1` to regenerate on purpose); `seen_urls.json` now stores dates and prunes entries older than 60 days so it can't grow forever. Added `test_synthesis.py` — fast offline tests for the citation and AI-relevance logic.
+
 ## 2026-06-09
 
 - Shortened the newsletter to four content blocks plus the editor's note, with a rotating action slot (Prompt of the Week one week, Workflow Unlock the next), because we got reader feedback that the issues were too long. The point of the newsletter is actionable AI — one thing people actually do beats five they never get to.

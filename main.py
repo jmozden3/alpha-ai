@@ -2,7 +2,7 @@ import io
 import json
 import os
 import sys
-from datetime import date
+from datetime import date, datetime, timedelta
 from dotenv import load_dotenv
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -14,18 +14,39 @@ from synthesize import synthesize, extract_coverage, COVERAGE_PATH
 load_dotenv()
 
 SEEN_URLS_PATH = "seen_urls.json"
+SEEN_URL_TTL_DAYS = 60  # forget URLs older than this so the ledger can't grow forever
 
 
-def _load_seen_urls() -> set:
-    if os.path.exists(SEEN_URLS_PATH):
-        with open(SEEN_URLS_PATH, "r", encoding="utf-8") as f:
-            return set(json.load(f))
-    return set()
+def _load_seen_urls() -> dict:
+    """Return {url: 'YYYY-MM-DD'}. Transparently upgrades the old list format
+    (bare URLs with no dates) by stamping those entries with today's date."""
+    if not os.path.exists(SEEN_URLS_PATH):
+        return {}
+    with open(SEEN_URLS_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    if isinstance(data, dict):
+        return data
+    today = date.today().strftime("%Y-%m-%d")
+    return {url: today for url in data}  # migrate legacy list format
 
 
-def _save_seen_urls(seen: set):
+def _prune_seen(seen: dict) -> dict:
+    """Drop entries older than SEEN_URL_TTL_DAYS. Undated/malformed entries are
+    kept (we can't tell their age, so err toward not re-surfacing them)."""
+    cutoff = date.today() - timedelta(days=SEEN_URL_TTL_DAYS)
+    kept = {}
+    for url, seen_date in seen.items():
+        try:
+            if datetime.strptime(seen_date, "%Y-%m-%d").date() >= cutoff:
+                kept[url] = seen_date
+        except (TypeError, ValueError):
+            kept[url] = seen_date
+    return kept
+
+
+def _save_seen_urls(seen: dict):
     with open(SEEN_URLS_PATH, "w", encoding="utf-8") as f:
-        json.dump(sorted(seen), f, indent=2)
+        json.dump(dict(sorted(seen.items())), f, indent=2)
 
 
 def _filter_seen(sources: dict, seen_urls: set) -> tuple[dict, int]:
@@ -79,6 +100,17 @@ def _source_health_html(rss: dict, reddit: dict, hn: dict) -> str:
 
 def main():
     print("=== Alpha AI Newsletter Pipeline ===\n")
+
+    # Don't clobber an existing issue for today. A manual test run followed by the
+    # scheduled Action (or two runs in one day) would otherwise overwrite the file
+    # and produce duplicate commits. Set ALPHA_FORCE=1 to regenerate deliberately.
+    today = date.today().strftime("%Y-%m-%d")
+    output_path = os.path.join("newsletters", f"{today}.md")
+    if os.path.exists(output_path) and not os.environ.get("ALPHA_FORCE"):
+        print(f"Newsletter for {today} already exists at {output_path}.")
+        print("Set ALPHA_FORCE=1 to regenerate. Exiting without changes.")
+        return
+
     cost_log = CostLog()
 
     print("Fetching RSS feeds...")
@@ -121,12 +153,12 @@ def main():
     print("Synthesizing newsletter...\n")
     newsletter = synthesize(sources_filtered, cost_log=cost_log, rotating=rotating)
 
-    # Persist all fetched URLs so future runs skip them
-    seen_urls.update(all_urls)
+    # Persist all fetched URLs (stamped today) so future runs skip them, then
+    # prune anything past the TTL so the ledger doesn't grow without bound.
+    for url in all_urls:
+        seen_urls[url] = today
+    seen_urls = _prune_seen(seen_urls)
     _save_seen_urls(seen_urls)
-
-    today = date.today().strftime("%Y-%m-%d")
-    output_path = os.path.join("newsletters", f"{today}.md")
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(f"# Alpha AI — Week of {today}\n\n")

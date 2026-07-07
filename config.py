@@ -1,26 +1,49 @@
 RSS_FEEDS = {
-    # --- Verified working as of 2026-05-25 ---
+    # --- Audience-appropriate feeds (verified live 2026-07-07) ---
+    # Kept: written for non-technical knowledge workers or accessible practitioners.
     "One Useful Thing":      "https://www.oneusefulthing.org/feed",
     "The Rundown AI":        "https://rss.beehiiv.com/feeds/2R3C6Bt5wj.xml",
     "Ben's Bites":           "https://www.bensbites.com/feed",
     "The Neuron":            "https://rss.beehiiv.com/feeds/N4eCstxvgX.xml",
     "Every.to":              "https://every.to/chain-of-thought/feed.xml",
     "Simon Willison":        "https://simonwillison.net/atom/everything/",
-    "Latent Space":          "https://www.latent.space/feed",
     "All-In Pod":            "https://allinchamathjason.libsyn.com/rss",
-    "Import AI":             "https://jack-clark.net/feed/",
-    "Ahead of AI":           "https://magazine.sebastianraschka.com/feed",
-    "The Gradient":          "https://thegradient.pub/rss/",
+    # Added 2026-07-07 — verified live, aimed at our actual reader:
+    "OpenAI":                "https://openai.com/news/rss.xml",              # primary source for real feature launches (Tool of the Week)
+    "TLDR AI":               "https://tldr.tech/api/rss/ai",                  # daily plain-English AI digest
+    "Lenny's Newsletter":    "https://www.lennysnewsletter.com/feed",        # product/work practices for managers & professionals
+    "MIT Sloan Mgmt Review": "https://sloanreview.mit.edu/feed/",            # AI-at-work from a management lens
+    "Platformer":            "https://www.platformer.news/rss/",             # consumer/policy AI news for Signal vs Noise
+    # Pruned 2026-07-07 — too technical/researcher-focused for a non-technical
+    # reader; they rarely yielded usable items and inflated the source blob:
+    #   Latent Space, Import AI (jack-clark.net), Ahead of AI, The Gradient
 }
 
 SUBREDDITS = [
-    "LocalLLaMA",
+    # Swapped 2026-07-07 toward communities of the people we write FOR
+    # (professionals using AI at work) instead of hobbyist/dev-heavy subs.
     "ChatGPT",
     "ClaudeAI",
-    "singularity",       # replaced dead r/AIPromptEngineering (last post Apr 27, score 3)
-    "VibeCoding",
-    "OpenAI",            # replaced dead r/AI_Automations (last post Apr 24, score 1)
+    "OpenAI",
     "AI_Agents",
+    "productivity",      # replaced hobbyist r/LocalLLaMA
+    "Entrepreneur",      # replaced futurist r/singularity
+    "smallbusiness",     # replaced dev-focused r/VibeCoding
+]
+
+# General-interest subs (above) are NOT AI-native: their top posts are mostly
+# off-topic for us. Alpha AI is specifically about using AI for tangible impact
+# in everyday work, so we only let posts through from these subs when they
+# actually mention AI. The AI-native subs are exempt from this gate.
+GENERAL_SUBREDDITS = {"productivity", "Entrepreneur", "smallbusiness"}
+
+# Case-insensitive substrings that mark a post as AI-relevant. Kept broad enough
+# to catch the tools/terms our reader would recognize without demanding an exact
+# match. Add to this as new mainstream tools appear.
+AI_KEYWORDS = [
+    "ai", "a.i.", "artificial intelligence", "chatgpt", "gpt", "claude",
+    "gemini", "copilot", "llm", "openai", "anthropic", "perplexity",
+    "notebooklm", "midjourney", "prompt", "automation", "agent", "machine learning",
 ]
 
 MAX_ITEMS_PER_SOURCE = 5
