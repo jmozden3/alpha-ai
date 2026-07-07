@@ -92,5 +92,15 @@
       "Signal: Add human review checkpoint when using AI for quality or safety decisions (tool: n/a)",
       "Noise: GPT-5.6 and Claude Mythos are government-restricted and irrelevant to most workers (tool: n/a)"
     ]
+  },
+  {
+    "date": "2026-07-07",
+    "covered": [
+      "Tip of the Week: Ask AI two closing questions to surface gaps and blind spots (tool: n/a)",
+      "Tool of the Week: Use multi-step task prompts to test Claude Sonnet 5 self-correction (tool: Claude Sonnet 5)",
+      "Prompt of the Week: Generate overdue invoice follow-up email from accounts address to depersonalize ask (tool: n/a)",
+      "Signal: Cloudflare will block AI web-scraping agents by default starting September 2025 (tool: n/a)",
+      "Noise: Running local AI models on Huawei GPU hardware as enthusiast hobby (tool: n/a)"
+    ]
   }
 ]
