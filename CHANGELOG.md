@@ -2,6 +2,10 @@
 
 A running, plain-language log of changes to the Alpha AI pipeline and *why* we made them. Newest first.
 
+## 2026-07-07 (transparency footer)
+
+- Added a standing transparency footer to the bottom of every issue: *"P.S. — reminder: these tips are distilled with AI from the best sources I curate. [How it's made.](repo link)"* Authenticity is central to this newsletter — readers should know upfront that the tips are AI-distilled from curated sources, and that a human picks the sources and writes the intro. Appended as static text at file-write time (not part of the AI-generated body), so the wording and link are always exact and never touch the coverage ledger. The About page carries the fuller story (added manually).
+
 ## 2026-07-07 (cadence)
 
 - **Switched to biweekly.** Weekly cadence was forcing four strong, non-repeating items out of every seven days — there just isn't that much genuinely new, do-it-tomorrow AI advice for a non-technical reader each week, which is what drove the "same advice, different tool" repetition. Every two weeks doubles the candidate pool per issue (best 4 of ~14 days instead of 7), which means higher signal and less slop, and fits a time-poor reader better. Same issue length — kept the single rotating action slot, not a meatier issue. Controlled by `PUBLISH_EVERY_N_WEEKS` in `config.py` (set to 1 to return to weekly). The Action still runs every Tuesday and simply skips off weeks; the rotating Prompt/Workflow slot now alternates per *published* issue so it survives skipped weeks. First biweekly issue: Tue 2026-07-14.

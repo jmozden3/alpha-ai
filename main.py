@@ -17,6 +17,15 @@ load_dotenv()
 SEEN_URLS_PATH = "seen_urls.json"
 SEEN_URL_TTL_DAYS = 60  # forget URLs older than this so the ledger can't grow forever
 
+# Standing transparency footer appended to every issue. Kept as static text
+# (not part of the AI-generated body) so the wording and the link are always
+# exact — the model never gets a chance to reword it or invent the URL.
+NEWSLETTER_FOOTER = (
+    "\n\n---\n\n"
+    "*P.S. — reminder: these tips are distilled with AI from the best sources I "
+    "curate. [How it's made.](https://github.com/jmozden3/alpha-ai)*\n"
+)
+
 
 def _load_seen_urls() -> dict:
     """Return {url: 'YYYY-MM-DD'}. Transparently upgrades the old list format
@@ -175,6 +184,7 @@ def main():
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(f"# Alpha AI — Week of {today}\n\n")
         f.write(newsletter)
+        f.write(NEWSLETTER_FOOTER)
 
     print(f"Newsletter saved to {output_path}")
 
