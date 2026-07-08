@@ -28,7 +28,7 @@ If it could've been written by anyone about anything, cut it.
 
 ## Ideas (newest first — dump freely)
 
-- could do something about how talking about claude code is the best tech I have used in a long long time. But what is the stat of people that don't get in the terminal
+- could do something about how talking about claude code is the best tech I have used in a long long time. But what is the stat of people that don't get in the terminal. could actually recommend claude code desktop to avoid cli completely.
 
 ---
 
