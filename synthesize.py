@@ -7,11 +7,11 @@ import anthropic
 
 from costs import CostEntry, CostLog
 
-MODEL = "claude-sonnet-5"
-# Sonnet 5 turns adaptive thinking ON when `thinking` is omitted; for this
-# straightforward generation job we keep it OFF to preserve cost/latency and
-# avoid empty-thinking-block streaming pauses. The variety self-check (below)
-# does the enforcement that thinking might otherwise help with.
+MODEL = "claude-opus-4-8"
+# We keep thinking OFF for this straightforward generation job to preserve
+# cost/latency. On Opus 4.8 omitting `thinking` already means no thinking, but
+# we disable it explicitly for clarity. The variety self-check (below) does the
+# enforcement that thinking might otherwise help with.
 NO_THINKING = {"type": "disabled"}
 FEEDBACK_PATH = "FEEDBACK.md"
 COVERAGE_PATH = "coverage.json"

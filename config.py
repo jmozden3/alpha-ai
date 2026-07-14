@@ -59,8 +59,8 @@ DAYS_LOOKBACK = 7
 PUBLISH_EVERY_N_WEEKS = 2
 # Monday of the first intended publish week. Weeks are counted from here (rather
 # than ISO week numbers, which reset each year and would shift the cadence), so
-# the schedule stays stable indefinitely. First biweekly issue: Tue 2026-07-14.
-CADENCE_EPOCH = date(2026, 7, 13)
+# the schedule stays stable indefinitely. First biweekly issue: Tue 2026-07-21.
+CADENCE_EPOCH = date(2026, 7, 20)
 
 # On off weeks we still want a full week of source lookback per issue, but items
 # older than one week are already de-emphasized by the freshness rules, so no

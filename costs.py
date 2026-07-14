@@ -7,6 +7,7 @@ from datetime import date
 PRICING = {
     # Anthropic — per million tokens
     "anthropic": {
+        "claude-sonnet-5":   {"input_per_m": 3.00, "output_per_m": 15.00},  # intro $2/$10 through 2026-08-31; using sticker rate
         "claude-sonnet-4-6": {"input_per_m": 3.00, "output_per_m": 15.00},
         "claude-opus-4-6":   {"input_per_m": 5.00, "output_per_m": 25.00},
     },
