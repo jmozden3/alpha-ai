@@ -10,6 +10,7 @@ PRICING = {
         "claude-sonnet-5":   {"input_per_m": 3.00, "output_per_m": 15.00},  # intro $2/$10 through 2026-08-31; using sticker rate
         "claude-sonnet-4-6": {"input_per_m": 3.00, "output_per_m": 15.00},
         "claude-opus-4-6":   {"input_per_m": 5.00, "output_per_m": 25.00},
+        "claude-opus-4-8":   {"input_per_m": 5.00, "output_per_m": 25.00},
     },
     # OpenAI Whisper — per minute of audio
     "openai": {
@@ -56,9 +57,16 @@ class CostLog:
         print("=" * 40)
         for e in self.entries:
             if e.input_tokens or e.output_tokens:
+                # Missing price rows must never kill the run — the pipeline has
+                # already generated the newsletter by the time this prints.
+                p = PRICING.get(e.api, {}).get(e.model, {})
                 print(f"\n  {e.api.title()} / {e.model} ({e.detail})")
-                print(f"    Input tokens:  {e.input_tokens:>8,}  (${e.input_tokens / 1_000_000 * PRICING[e.api][e.model]['input_per_m']:.4f})")
-                print(f"    Output tokens: {e.output_tokens:>8,}  (${e.output_tokens / 1_000_000 * PRICING[e.api][e.model]['output_per_m']:.4f})")
+                if "input_per_m" in p:
+                    print(f"    Input tokens:  {e.input_tokens:>8,}  (${e.input_tokens / 1_000_000 * p['input_per_m']:.4f})")
+                    print(f"    Output tokens: {e.output_tokens:>8,}  (${e.output_tokens / 1_000_000 * p['output_per_m']:.4f})")
+                else:
+                    print(f"    Input tokens:  {e.input_tokens:>8,}  (unknown pricing — add {e.api}/{e.model} to PRICING)")
+                    print(f"    Output tokens: {e.output_tokens:>8,}")
             elif e.audio_minutes:
                 print(f"\n  {e.api.title()} / {e.model} ({e.detail})")
                 print(f"    Audio:         {e.audio_minutes:>7.1f} min  (${e.cost:.4f})")
@@ -69,7 +77,6 @@ class CostLog:
         rows = ""
         for e in self.entries:
             if e.input_tokens or e.output_tokens:
-                p = PRICING[e.api][e.model]
                 rows += f"<tr><td>{e.api.title()} / {e.model}</td><td>{e.input_tokens:,}</td><td>{e.output_tokens:,}</td><td>${e.cost:.4f}</td></tr>"
             elif e.audio_minutes:
                 rows += f"<tr><td>{e.api.title()} / {e.model} ({e.detail})</td><td colspan='2'>{e.audio_minutes:.1f} min</td><td>${e.cost:.4f}</td></tr>"
