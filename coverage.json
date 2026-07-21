@@ -102,5 +102,15 @@
       "Signal: Cloudflare will block AI web-scraping agents by default starting September 2025 (tool: n/a)",
       "Noise: Running local AI models on Huawei GPU hardware as enthusiast hobby (tool: n/a)"
     ]
+  },
+  {
+    "date": "2026-07-21",
+    "covered": [
+      "Tip of the Week: Have AI interview you before drafting to capture voice (tool: Claude)",
+      "Tool of the Week: Turn recurring SMB admin tasks into reusable processes (tool: ChatGPT for Small Businesses)",
+      "Prompt of the Week: Pressure-test idea assumptions with customer discovery before building (tool: n/a)",
+      "Signal: Disclose AI use in customer-facing content ahead of regulations (tool: n/a)",
+      "Noise: Ignore hype over new Chinese open-weights model benchmarks (tool: Kimi K3)"
+    ]
   }
 ]
