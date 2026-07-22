@@ -1,15 +1,27 @@
-name: Weekly AI Newsletter
+name: Alpha AI Pipeline
 
 on:
   schedule:
-    - cron: '0 14 * * 2'  # Every Tuesday at 10am EDT (14:00 UTC)
-  workflow_dispatch:       # Also allows manual run from GitHub UI anytime
+    - cron: '0 14 * * 2'  # Every Tuesday at 10am EDT (14:00 UTC) — weekly briefing
+  workflow_dispatch:       # Manual run from the GitHub UI; pick the mode below
+    inputs:
+      mode:
+        description: "collect = weekly briefing, roundup = draft an issue now"
+        type: choice
+        options:
+          - collect
+          - roundup
+        default: collect
 
 jobs:
   generate:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
+    env:
+      # Scheduled runs have no inputs, so they default to the weekly briefing.
+      MODE: ${{ github.event.inputs.mode || 'collect' }}
 
     steps:
       - name: Checkout repo
@@ -25,30 +37,39 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Generate newsletter
+      - name: Run pipeline (${{ github.event.inputs.mode || 'collect' }})
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # Reddit uses public RSS (no key). Bump the delay so the data-center IP
           # stays under the per-IP rate limit; the job has plenty of time budget.
           REDDIT_REQUEST_DELAY: "30"
-        run: python main.py
+        run: python main.py --mode "$MODE"
 
-      - name: Commit and push newsletter
+      - name: Commit and push results
         run: |
           git config user.name "alpha-ai-bot"
           git config user.email "actions@github.com"
-          git add newsletters/ seen_urls.json coverage.json
-          git diff --staged --quiet || git commit -m "newsletter: $(date +%Y-%m-%d)"
+          git add briefings/ roundups/ roundup_state.json seen_urls.json coverage.json
+          git diff --staged --quiet || git commit -m "$MODE: $(date +%Y-%m-%d)"
           git push
 
-      - name: Set today's date
-        id: date
-        run: echo "today=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+      - name: Set email metadata
+        id: meta
+        run: |
+          echo "today=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+          # Stable subject prefixes: the editor's Gmail filter labels on
+          # subject "Alpha AI" — keep both subjects starting with it.
+          if [ "$MODE" = "roundup" ]; then
+            echo "subject=Alpha AI Roundup Draft — $(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+          else
+            echo "subject=Alpha AI Briefing — $(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+          fi
 
-      # Only email when an issue was actually produced. On biweekly "off" weeks
-      # main.py exits early and never writes run_summary.html, so this step is
-      # skipped rather than sending an empty/broken notification.
-      - name: Send email notification
+      # Only email when the run actually produced something. If the pipeline
+      # exited early (e.g. today's briefing already exists, or too few
+      # candidates for a roundup), run_summary.html is never written and this
+      # step is skipped rather than sending an empty/broken notification.
+      - name: Send email
         if: ${{ hashFiles('run_summary.html') != '' }}
         uses: dawidd6/action-send-mail@v18
         with:
@@ -57,7 +78,7 @@ jobs:
           secure: true
           username: ${{ secrets.GMAIL_USERNAME }}
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          subject: "Alpha AI Newsletter Ready — ${{ steps.date.outputs.today }}"
+          subject: ${{ steps.meta.outputs.subject }}
           to: ${{ secrets.GMAIL_USERNAME }}
           from: Alpha AI <${{ secrets.GMAIL_USERNAME }}>
           html_body: file://run_summary.html

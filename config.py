@@ -1,5 +1,3 @@
-from datetime import date
-
 RSS_FEEDS = {
     # --- Audience-appropriate feeds (verified live 2026-07-07) ---
     # Kept: written for non-technical knowledge workers or accessible practitioners.
@@ -52,19 +50,17 @@ MAX_ITEMS_PER_SOURCE = 5
 MAX_CHARS_PER_ITEM = 2000
 DAYS_LOOKBACK = 7
 
-# --- Publishing cadence ---
-# The GitHub Action fires every Tuesday, but we only publish every Nth week.
-# 1 = weekly, 2 = biweekly. On "off" weeks main.py exits early and nothing is
-# written, committed, or emailed. Flip this back to 1 to return to weekly.
-PUBLISH_EVERY_N_WEEKS = 2
-# Monday of the first intended publish week. Weeks are counted from here (rather
-# than ISO week numbers, which reset each year and would shift the cadence), so
-# the schedule stays stable indefinitely. First biweekly issue: Tue 2026-07-21.
-CADENCE_EPOCH = date(2026, 7, 20)
-
-# On off weeks we still want a full week of source lookback per issue, but items
-# older than one week are already de-emphasized by the freshness rules, so no
-# change to DAYS_LOOKBACK is needed for biweekly.
+# --- Cadence & volumes ---
+# The GitHub Action fires every Tuesday and always collects a weekly BRIEFING —
+# candidate tips + news, emailed to the editor and saved to briefings/. Roundup
+# drafts are generated ON DEMAND (python main.py --mode roundup locally, or the
+# "Run workflow" button on GitHub Actions with mode=roundup) whenever the editor
+# feels like writing an issue. There is no publishing schedule.
+BRIEFING_MAX_CANDIDATES = 8     # max candidates kept per weekly briefing
+ROUNDUP_TIPS = 3                # full tip write-ups per roundup draft
+ROUNDUP_NEWS = 2                # max "Worth knowing" news items per draft
+ROUNDUP_RUNNERS_UP = 5          # shortlist bullets appended under the tips
+ROUNDUP_MAX_LOOKBACK_DAYS = 60  # safety cap on how far back a roundup reaches
 
 # --- Hacker News (Algolia API, unauthenticated, not IP-blocked on Actions) ---
 HN_QUERY = "AI"        # full-text query against story titles/text
